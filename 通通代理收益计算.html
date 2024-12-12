@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>通通代理收益计算器</title>
+<style>
+  body {
+    font-family: "Microsoft Yahei", Arial, sans-serif;
+    background: #f9f9f9;
+    margin: 20px;
+    color: #333;
+    font-size: 16px;
+  }
+  @media (max-width: 600px) {
+    /* 移动端适配 */
+    body {
+      font-size: 14px;
+      margin:10px;
+    }
+    h1 {
+      font-size: 24px;
+    }
+    h2, h3 {
+      font-size:18px;
+    }
+    label {
+      width:120px;
+    }
+    input[type="number"], select {
+      width:60px;
+      font-size:12px;
+    }
+    .btn-calc {
+      font-size:16px;
+      padding:8px 16px;
+    }
+    table, th, td {
+      font-size:12px;
+      padding:6px;
+    }
+  }
+
+  h1 {
+    font-size: 28px;
+    font-weight: bold;
+    color: #333;
+    margin-bottom: 20px;
+    border-bottom: 2px solid #ccc;
+    padding-bottom:10px;
+  }
+  h2, h3 {
+    font-size:20px;
+    color: #444;
+    margin-top:30px;
+    margin-bottom:10px;
+  }
+  .form-group {
+    margin-bottom:10px;
+  }
+  label {
+    display:inline-block;
+    width:150px;
+    font-size:16px;
+  }
+  input[type="number"] {
+    width:80px;
+    padding:5px;
+    font-size:14px;
+    border:1px solid #ccc;
+    border-radius:4px;
+  }
+  select {
+    width:100px;
+    font-size:14px;
+    padding:3px;
+    border:1px solid #ccc;
+    border-radius:4px;
+  }
+  .result {
+    margin-top:20px; 
+    font-weight:bold;
+  }
+  table {
+    border-collapse: collapse; 
+    margin-top:10px;
+    width:100%;
+    max-width:600px;
+    background:#fff;
+  }
+  table, th, td {
+    border:1px solid #ccc;
+  }
+  th, td {
+    padding:8px;
+    text-align:center;
+    font-size:14px;
+  }
+  th {
+    background:#eee;
+  }
+  .btn-calc {
+    font-size:18px;
+    font-weight:bold;
+    background:#ff6600;
+    color:#fff;
+    border:none;
+    border-radius:4px;
+    padding:10px 20px;
+    cursor:pointer;
+    margin-top:20px;
+  }
+  .btn-calc:hover {
+    background:#e65c00;
+  }
+  .section {
+    background:#fff;
+    padding:20px;
+    border-radius:6px;
+    box-shadow:0 0 10px rgba(0,0,0,0.1);
+    margin-bottom:30px;
+  }
+  .section h3 {
+    border-left:5px solid #ff6600;
+    padding-left:10px;
+  }
+
+  /* 标题高亮样式（红字黄底） */
+  .highlight-title {
+    color:red;
+    background:yellow;
+    display:inline-block;
+    padding:2px 5px;
+    margin-bottom:5px;
+  }
+
+  /* 加粗红色字体 */
+  .bold-red {
+    font-weight:bold;
+    color:red;
+  }
+</style>
+</head>
+<body>
+
+<h1>通通代理收益计算器</h1>
+
+<div class="section">
+  <div class="form-group">
+    <label>代理身份：</label>
+    <select id="agentType" onchange="updateDisableFields();updateLowerInputDisable()">
+      <option value="大区">大区</option>
+      <option value="经理" selected>经理</option>
+      <option value="主管">主管</option>
+      <option value="推手">推手</option>
+    </select>
+  </div>
+
+  <!-- 各级别代理数量 全部默认0 -->
+  <div class="form-group">
+    <label>大区数量：</label><input type="number" id="numDaqu" value="0" />
+  </div>
+  <div class="form-group">
+    <label>经理数量：</label><input type="number" id="numJingli" value="0" />
+  </div>
+  <div class="form-group">
+    <label>主管数量：</label><input type="number" id="numZhuguan" value="0" />
+  </div>
+  <div class="form-group">
+    <label>推手数量：</label><input type="number" id="numTuishou" value="0" />
+  </div>
+</div>
+
+<div class="section">
+  <h3>本级直推数据(可根据需要修改)：</h3>
+  <!-- 全部默认为0 -->
+  <div class="form-group">
+    <label>本级直推商家数：</label><input type="number" id="myMerchants" value="0" />
+  </div>
+  <div class="form-group">
+    <label>本级直推用户数：</label><input type="number" id="myUsers" value="0" />
+  </div>
+  <div class="form-group">
+    <label>本级直推推手数：</label><input type="number" id="myMembers" value="0" />
+  </div>
+</div>
+
+<div class="section">
+  <h3>下级代理直推数据(每个下级代理的平均直推)：</h3>
+  <table id="lowerTable">
+    <tr>
+      <th>级别</th>
+      <th>商家(个)</th>
+      <th>用户(个)</th>
+      <th>推手(个)</th>
+    </tr>
+    <tr>
+      <td>大区</td>
+      <td><input type="number" id="daquMerchants" value="0" /></td>
+      <td><input type="number" id="daquUsers" value="0" /></td>
+      <td><input type="number" id="daquMembers" value="0" /></td>
+    </tr>
+    <tr>
+      <td>经理</td>
+      <td><input type="number" id="jingliMerchants" value="0" /></td>
+      <td><input type="number" id="jingliUsers" value="0" /></td>
+      <td><input type="number" id="jingliMembers" value="0" /></td>
+    </tr>
+    <tr>
+      <td>主管</td>
+      <td><input type="number" id="zhuguanMerchants" value="0" /></td>
+      <td><input type="number" id="zhuguanUsers" value="0" /></td>
+      <td><input type="number" id="zhuguanMembers" value="0" /></td>
+    </tr>
+    <tr>
+      <td>推手</td>
+      <td><input type="number" id="tuishouMerchants" value="0" /></td>
+      <td><input type="number" id="tuishouUsers" value="0" /></td>
+      <td><input type="number" id="tuishouMembers" value="0" /></td>
+    </tr>
+  </table>
+</div>
+
+<div class="section">
+  <h3>假设市场数值</h3>
+  <!-- 保留默认值 -->
+  <div class="form-group">
+    <label>商家服务费/元/月：</label><input type="number" id="merchantServiceFee" value="2000" />
+  </div>
+  <div class="form-group">
+    <label>用户手续费/元/月：</label><input type="number" id="userServiceFee" value="200" />
+  </div>
+  <button class="btn-calc" onclick="calculate()">开始计算收益</button>
+</div>
+
+<div class="result" id="resultArea"></div>
+
+<script>
+// 等级定义：大区(1), 经理(2), 主管(3), 推手(4)
+function getLevel(agentType) {
+  switch(agentType) {
+    case '大区': return 1;
+    case '经理': return 2;
+    case '主管': return 3;
+    case '推手': return 4;
+  }
+}
+
+function updateDisableFields(){
+  const agentType = document.getElementById('agentType').value;
+  const level = getLevel(agentType);
+
+  const fields = [
+    {id:'numDaqu', level:1},
+    {id:'numJingli', level:2},
+    {id:'numZhuguan', level:3},
+    {id:'numTuishou', level:4}
+  ];
+
+  fields.forEach(f=>{
+    document.getElementById(f.id).disabled = (f.level <= level); 
+  });
+}
+
+function updateLowerInputDisable(){
+  const agentType = document.getElementById('agentType').value;
+  const level = getLevel(agentType);
+
+  const lowerLevels = {
+    '大区':1,
+    '经理':2,
+    '主管':3,
+    '推手':4
+  };
+
+  const rowMapping = [
+    {name:'大区', mer:'daquMerchants', usr:'daquUsers', mem:'daquMembers'},
+    {name:'经理', mer:'jingliMerchants', usr:'jingliUsers', mem:'jingliMembers'},
+    {name:'主管', mer:'zhuguanMerchants', usr:'zhuguanUsers', mem:'zhuguanMembers'},
+    {name:'推手', mer:'tuishouMerchants', usr:'tuishouUsers', mem:'tuishouMembers'}
+  ];
+
+  rowMapping.forEach(r=>{
+    const lvl = lowerLevels[r.name];
+    const disable = (lvl <= level); 
+    document.getElementById(r.mer).disabled = disable;
+    document.getElementById(r.usr).disabled = disable;
+    document.getElementById(r.mem).disabled = disable;
+  });
+}
+
+document.addEventListener('DOMContentLoaded', ()=>{
+  updateDisableFields();
+  updateLowerInputDisable();
+});
+
+const params = {
+  directBase: {
+    newMerchant: { '大区':180, '经理':150, '主管':120, '推手':100 },
+    newUser: { '大区':18, '经理':15, '主管':12, '推手':10 },
+    newMember: { '大区':180, '经理':150, '主管':120, '推手':100 },
+    merchantSell: { '大区':0.1, '经理':0.08, '主管':0.065, '推手':0.05 },
+    userTrade:   { '大区':0.1, '经理':0.08, '主管':0.065, '推手':0.05 }
+  },
+  indirectDiff: {
+    newMerchant: { '大区-经理':30, '大区-主管':60, '大区-推手':80, '经理-主管':30, '经理-推手':50, '主管-推手':20 },
+    newUser:     { '大区-经理':3,  '大区-主管':6,  '大区-推手':8,  '经理-主管':3,  '经理-推手':5,  '主管-推手':2 },
+    newMember:   { '大区-经理':30, '大区-主管':60, '大区-推手':80, '经理-主管':30, '经理-推手':50, '主管-推手':20 },
+    merchantSell:{ '大区-经理':0.02, '大区-主管':0.035, '大区-推手':0.05,  '经理-主管':0.015, '经理-推手':0.03,  '主管-推手':0.015 },
+    userTrade:   { '大区-经理':0.02, '大区-主管':0.035, '大区-推手':0.05,  '经理-主管':0.015, '经理-推手':0.03,  '主管-推手':0.015 }
+  }
+};
+
+function getDiffKey(upper, lower){
+  return upper + '-' + lower;
+}
+
+function calcDirectIncome(agentType, m, u, mem, merchantFee, userFee){
+  const nm = m * params.directBase.newMerchant[agentType];
+  const nu = u * params.directBase.newUser[agentType];
+  const nmem = mem * params.directBase.newMember[agentType];
+
+  const ms = m * merchantFee * params.directBase.merchantSell[agentType];
+  const ut = u * userFee * params.directBase.userTrade[agentType];
+
+  const total = nm + nu + nmem + ms + ut;
+  return { nm, nu, nmem, ms, ut, total };
+}
+
+function calcIndirectIncome(upperType, lowerType, lowerCount, merchantsPerUnit, usersPerUnit, membersPerUnit, merchantFee, userFee){
+  const key = getDiffKey(upperType, lowerType);
+  const nmDiff = params.indirectDiff.newMerchant[key] || 0;
+  const nuDiff = params.indirectDiff.newUser[key] || 0;
+  const nmemDiff = params.indirectDiff.newMember[key] || 0;
+  const msDiff = params.indirectDiff.merchantSell[key] || 0;
+  const utDiff = params.indirectDiff.userTrade[key] || 0;
+
+  const nmInc = lowerCount * merchantsPerUnit * nmDiff;
+  const nuInc = lowerCount * usersPerUnit * nuDiff;
+  const nmemInc = lowerCount * membersPerUnit * nmemDiff;
+  const msInc = lowerCount * merchantsPerUnit * merchantFee * msDiff;
+  const utInc = lowerCount * usersPerUnit * userFee * utDiff;
+
+  const total = nmInc + nuInc + nmemInc + msInc + utInc;
+  return { nmInc, nuInc, nmemInc, msInc, utInc, total };
+}
+
+function calculate(){
+  const agentType = document.getElementById('agentType').value;
+  const numDaqu = parseInt(document.getElementById('numDaqu').value,10);
+  const numJingli = parseInt(document.getElementById('numJingli').value,10);
+  const numZhuguan = parseInt(document.getElementById('numZhuguan').value,10);
+  const numTuishou = parseInt(document.getElementById('numTuishou').value,10);
+
+  const myMerchants = parseInt(document.getElementById('myMerchants').value,10);
+  const myUsers = parseInt(document.getElementById('myUsers').value,10);
+  const myMembers = parseInt(document.getElementById('myMembers').value,10);
+
+  const daquMerchants = parseInt(document.getElementById('daquMerchants').value,10);
+  const daquUsers = parseInt(document.getElementById('daquUsers').value,10);
+  const daquMembers = parseInt(document.getElementById('daquMembers').value,10);
+
+  const jingliMerchants = parseInt(document.getElementById('jingliMerchants').value,10);
+  const jingliUsers = parseInt(document.getElementById('jingliUsers').value,10);
+  const jingliMembers = parseInt(document.getElementById('jingliMembers').value,10);
+
+  const zhuguanMerchants = parseInt(document.getElementById('zhuguanMerchants').value,10);
+  const zhuguanUsers = parseInt(document.getElementById('zhuguanUsers').value,10);
+  const zhuguanMembers = parseInt(document.getElementById('zhuguanMembers').value,10);
+
+  const tuishouMerchants = parseInt(document.getElementById('tuishouMerchants').value,10);
+  const tuishouUsers = parseInt(document.getElementById('tuishouUsers').value,10);
+  const tuishouMembers = parseInt(document.getElementById('tuishouMembers').value,10);
+
+  const merchantServiceFee = parseFloat(document.getElementById('merchantServiceFee').value);
+  const userServiceFee = parseFloat(document.getElementById('userServiceFee').value);
+
+  const direct = calcDirectIncome(agentType, myMerchants, myUsers, myMembers, merchantServiceFee, userServiceFee);
+
+  let indirectDetails = [];
+  let indirectTotal = 0;
+
+  function addIndirect(lowerType, lowerCount, mpu, upu, mempu){
+    if(lowerCount > 0){
+      const inc = calcIndirectIncome(agentType, lowerType, lowerCount, mpu, upu, mempu, merchantServiceFee, userServiceFee);
+      if(inc.total > 0){
+        indirectTotal += inc.total;
+        indirectDetails.push({
+          lowerType, lowerCount, 
+          nmInc: inc.nmInc, nuInc: inc.nuInc, nmemInc: inc.nmemInc,
+          msInc: inc.msInc, utInc: inc.utInc,
+          total: inc.total
+        });
+      }
+    }
+  }
+
+  addIndirect('大区', numDaqu, daquMerchants, daquUsers, daquMembers);
+  addIndirect('经理', numJingli, jingliMerchants, jingliUsers, jingliMembers);
+  addIndirect('主管', numZhuguan, zhuguanMerchants, zhuguanUsers, zhuguanMembers);
+  addIndirect('推手', numTuishou, tuishouMerchants, tuishouUsers, tuishouMembers);
+  
+  const total = direct.total + indirectTotal;
+
+  let html = `<h2><span class="highlight-title">直接收益明细</span></h2>
+  <table>
+    <tr><th>项目</th><th>收益(元)</th></tr>
+    <tr><td>新商家入驻补贴</td><td>${direct.nm.toFixed(2)}</td></tr>
+    <tr><td>新用户注册补贴</td><td>${direct.nu.toFixed(2)}</td></tr>
+    <tr><td>新成员加入补贴</td><td>${direct.nmem.toFixed(2)}</td></tr>
+    <tr><td>商家卖货流水</td><td>${direct.ms.toFixed(2)}</td></tr>
+    <tr><td>用户交易流水</td><td>${direct.ut.toFixed(2)}</td></tr>
+    <tr><td class="bold-red">直接收益合计</td><td class="bold-red">${direct.total.toFixed(2)}</td></tr>
+  </table>`;
+
+  html += `<h2><span class="highlight-title">间接收益明细</span></h2>`;
+  if(indirectDetails.length === 0){
+    html += `<p>无间接收益</p>`;
+  } else {
+    html += `<table>
+      <tr>
+        <th>下级类型</th><th>数量</th>
+        <th>新商家(元)</th><th>新用户(元)</th><th>新成员(元)</th>
+        <th>商家卖货(元)</th><th>用户交易(元)</th>
+        <th>小计(元)</th>
+      </tr>`;
+    indirectDetails.forEach(d=>{
+      html += `<tr>
+        <td>${d.lowerType}</td>
+        <td>${d.lowerCount}</td>
+        <td>${d.nmInc.toFixed(2)}</td>
+        <td>${d.nuInc.toFixed(2)}</td>
+        <td>${d.nmemInc.toFixed(2)}</td>
+        <td>${d.msInc.toFixed(2)}</td>
+        <td>${d.utInc.toFixed(2)}</td>
+        <td>${d.total.toFixed(2)}</td>
+      </tr>`;
+    });
+    html += `<tr><td colspan="7" class="bold-red">间接收益合计</td><td class="bold-red">${indirectTotal.toFixed(2)}</td></tr></table>`;
+  }
+
+  // 新增要求：总收益标题红字黄底，总计收益加粗红色
+  html += `<h2><span class="highlight-title">总收益</span></h2>
+  <p class="bold-red">总计收益：${total.toFixed(2)}元</p>`;
+
+  document.getElementById('resultArea').innerHTML = html;
+}
+</script>
+</body>
+</html>
